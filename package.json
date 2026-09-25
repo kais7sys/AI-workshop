@@ -1,0 +1,32 @@
+{
+  "name": "agriculture-platform-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-Powered Agriculture Department Digital Platform",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces",
+    "dev:api": "npm run dev --workspace=apps/api",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "build": "npm run build --workspaces",
+    "build:api": "npm run build --workspace=apps/api",
+    "build:web": "npm run build --workspace=apps/web",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "keywords": [
+    "agriculture",
+    "ai",
+    "gemini",
+    "crop-advisory",
+    "supabase",
+    "express",
+    "react",
+    "typescript"
+  ],
+  "author": "Agriculture Department Engineering Team",
+  "license": "UNLICENSED"
+}

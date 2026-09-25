@@ -1,0 +1,55 @@
+name: Production Deployment
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*.*.*' ]
+
+jobs:
+  deploy:
+    name: Production Release Pipeline
+    runs-on: ubuntu-latest
+    if: github.repository == github.repository_owner && !github.event.pull_request
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Full Test Suite
+        run: npm run test
+
+      - name: Build Web Application & Backend API
+        run: npm run build
+
+      - name: Log in to Container Registry
+        if: env.REGISTRY_PASSWORD != ''
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Tag Production Image
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}/agri-platform:${{ github.sha }} .
+          docker tag ghcr.io/${{ github.repository }}/agri-platform:${{ github.sha }} ghcr.io/${{ github.repository }}/agri-platform:latest
+
+      - name: Smoke Test Deployed Container Health
+        run: |
+          docker run -d --name test-runner -p 5000:5000 \
+            -e NODE_ENV=production \
+            -e PORT=5000 \
+            -e FRONTEND_URL=http://localhost:5000 \
+            ghcr.io/${{ github.repository }}/agri-platform:${{ github.sha }}
+          sleep 5
+          curl --fail http://localhost:5000/health || exit 1
+          docker stop test-runner
